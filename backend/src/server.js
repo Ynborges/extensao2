@@ -26,12 +26,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Rotas
-app.use('/api/auth', authRoutes);
-app.use('/api/courses', courseRoutes);
-app.use('/api/opportunities', opportunityRoutes);
-app.use('/api/blog', blogRoutes);
-app.use('/api/student', studentRoutes);
-app.use('/api/institution', institutionRoutes);
+app.use('/auth', authRoutes);
+app.use('/courses', courseRoutes);
+app.use('/opportunities', opportunityRoutes);
+app.use('/blog', blogRoutes);
+app.use('/student', studentRoutes);
+app.use('/institution', institutionRoutes);
 
 // Rota de health check
 app.get('/health', (req, res) => {
@@ -49,11 +49,5 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  });
-}
 
 module.exports = app;
