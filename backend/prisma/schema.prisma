@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserTypeEnum {
+  estudante
+  instituicao
+  admin
+
+  @@map("user_type_enum")
+}
+
+enum CourseModalityEnum {
+  presencial
+  online
+
+  @@map("course_modality_enum")
+}
+
+enum CourseLevelEnum {
+  iniciante
+  intermediario
+  avancado
+
+  @@map("course_level_enum")
+}
+
+model Usuario {
+  id               BigInt      @id @default(autoincrement())
+  publicId         String      @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  nomeCompleto     String      @map("nome_completo") @db.VarChar(255)
+  email            String      @unique @db.Citext
+  senha            String
+  tipoUsuario      UserTypeEnum @map("tipo_usuario")
+  emailConfirmado  Boolean     @default(false) @map("email_confirmado")
+  ativo            Boolean     @default(true)
+  criadoEm         DateTime    @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm     DateTime    @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  perfilEstudante    PerfilEstudante?
+  perfilInstituicao  PerfilInstituicao?
+  postagensBlog      PostagemBlog[]
+  matriculas         Matricula[]
+  candidaturas       Candidatura[]
+
+  @@map("usuarios")
+}
+
+model PerfilEstudante {
+  id                     BigInt   @id @default(autoincrement())
+  usuarioId              BigInt   @unique @map("usuario_id")
+  nomeEscola             String   @map("nome_escola") @db.VarChar(255)
+  areaInteressePrincipal String   @map("area_interesse_principal") @db.VarChar(255)
+  urlCurriculo           String?  @map("url_curriculo")
+  criadoEm               DateTime @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm           DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("perfis_estudante")
+}
+
+model PerfilInstituicao {
+  id               BigInt   @id @default(autoincrement())
+  usuarioId        BigInt   @unique @map("usuario_id")
+  nomeInstituicao  String   @map("nome_instituicao") @db.VarChar(255)
+  descricao        String
+  urlSite          String?  @map("url_site")
+  urlLogo          String?  @map("url_logo")
+  criadoEm         DateTime @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm     DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  usuario       Usuario        @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  cursos        Curso[]
+  oportunidades Oportunidade[]
+
+  @@map("perfis_instituicao")
+}
+
+model CategoriaCurso {
+  id           BigInt   @id @default(autoincrement())
+  nome         String   @unique @db.VarChar(150)
+  criadoEm     DateTime @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  cursos                        CursoCategoria[]
+  oportunidadesRelacionadas     Oportunidade[]
+
+  @@map("categorias_curso")
+}
+
+model Curso {
+  id                 BigInt              @id @default(autoincrement())
+  instituicaoId      BigInt              @map("instituicao_id")
+  titulo             String              @db.VarChar(255)
+  descricao          String
+  modalidade         CourseModalityEnum
+  nivel              CourseLevelEnum
+  cargaHorariaHoras  Int                 @map("carga_horaria_horas")
+  localizacao        String?             @db.VarChar(255)
+  requisitos         String
+  linkInscricao      String              @map("link_inscricao")
+  estaAtivo          Boolean             @default(true) @map("esta_ativo")
+  criadoEm           DateTime            @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm       DateTime            @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  instituicao  PerfilInstituicao @relation(fields: [instituicaoId], references: [id], onDelete: Cascade)
+  categorias   CursoCategoria[]
+  matriculas   Matricula[]
+
+  @@map("cursos")
+}
+
+model CursoCategoria {
+  cursoId     BigInt @map("curso_id")
+  categoriaId BigInt @map("categoria_id")
+
+  curso     Curso         @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  categoria CategoriaCurso @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+
+  @@id([cursoId, categoriaId])
+  @@map("curso_categoria")
+}
+
+model Oportunidade {
+  id                         BigInt   @id @default(autoincrement())
+  instituicaoId              BigInt   @map("instituicao_id")
+  titulo                     String   @db.VarChar(255)
+  descricao                  String
+  requisitos                 String
+  categoriaCursoRelacionadaId BigInt? @map("categoria_curso_relacionada_id")
+  estaAtivo                  Boolean  @default(true) @map("esta_ativo")
+  criadoEm                   DateTime @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm               DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  instituicao              PerfilInstituicao @relation(fields: [instituicaoId], references: [id], onDelete: Cascade)
+  categoriaCursoRelacionada CategoriaCurso?   @relation(fields: [categoriaCursoRelacionadaId], references: [id], onDelete: SetNull)
+  candidaturas             Candidatura[]
+
+  @@map("oportunidades")
+}
+
+model PostagemBlog {
+  id          BigInt    @id @default(autoincrement())
+  autorId     BigInt    @map("autor_id")
+  titulo      String    @db.VarChar(255)
+  conteudo    String
+  slug        String    @unique @db.VarChar(255)
+  publicadoEm DateTime? @map("publicado_em") @db.Timestamptz(6)
+  criadoEm    DateTime  @default(now()) @map("criado_em") @db.Timestamptz(6)
+  atualizadoEm DateTime @default(now()) @updatedAt @map("atualizado_em") @db.Timestamptz(6)
+
+  autor Usuario @relation(fields: [autorId], references: [id], onDelete: Restrict)
+
+  @@map("postagens_blog")
+}
+
+model Matricula {
+  id            BigInt   @id @default(autoincrement())
+  cursoId       BigInt   @map("curso_id")
+  usuarioId     BigInt   @map("usuario_id")
+  status        String   @default("inscrito") @db.VarChar(40)
+  dataInscricao DateTime @default(now()) @map("data_inscricao") @db.Timestamptz(6)
+
+  curso   Curso   @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+  usuario Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([cursoId, usuarioId])
+  @@map("matriculas")
+}
+
+model Candidatura {
+  id              BigInt   @id @default(autoincrement())
+  oportunidadeId  BigInt   @map("oportunidade_id")
+  usuarioId       BigInt   @map("usuario_id")
+  status          String   @default("pendente") @db.VarChar(40)
+  dataCandidatura DateTime @default(now()) @map("data_candidatura") @db.Timestamptz(6)
+
+  oportunidade Oportunidade @relation(fields: [oportunidadeId], references: [id], onDelete: Cascade)
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([oportunidadeId, usuarioId])
+  @@map("candidaturas")
+}

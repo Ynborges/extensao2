@@ -1,0 +1,31 @@
+{
+  "name": "plataforma-cursos-backend",
+  "version": "1.0.0",
+  "description": "API para plataforma de divulgação de cursos técnicos",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "node src/database/seed.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.1.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "joi": "^17.11.0",
+    "prisma": "^5.6.0",
+    "@prisma/client": "^5.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["cursos", "educacao", "manaus", "amazonas"],
+  "author": "Plataforma de Cursos",
+  "license": "MIT"
+}
