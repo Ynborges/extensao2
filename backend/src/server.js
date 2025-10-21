@@ -14,6 +14,11 @@ const institutionRoutes = require('./routes/institution');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Para Vercel
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Middlewares
 app.use(helmet());
 app.use(cors());
@@ -44,7 +49,11 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Rota não encontrada' });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`);
+    console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  });
+}
+
+module.exports = app;
