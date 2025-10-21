@@ -1,4 +1,4 @@
-const prisma = require('../database/prisma');
+const prisma = require('../utils/prisma');
 const { hashPassword, comparePassword, generateToken } = require('../utils/auth');
 
 class AuthService {

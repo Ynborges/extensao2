@@ -1,4 +1,4 @@
-const prisma = require('../database/prisma');
+const prisma = require('../utils/prisma');
 
 class OpportunityService {
   async getOpportunities(page = 1, limit = 12) {

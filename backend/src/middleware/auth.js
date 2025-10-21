@@ -1,5 +1,5 @@
 const { verifyToken } = require('../utils/auth');
-const prisma = require('../database/prisma');
+const prisma = require('../utils/prisma');
 
 const authenticate = async (req, res, next) => {
   try {
